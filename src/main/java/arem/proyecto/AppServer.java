@@ -16,35 +16,38 @@ public class AppServer {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(35000);
+            serverSocket = new ServerSocket();
         } catch (IOException e) {
             System.err.println("Could not listen on port: 35000.");
             System.exit(1);
         }
         Socket clientSocket = null;
-        try {
-            clientSocket = serverSocket.accept();
-        } catch (IOException e) {
-            System.err.println("Accept failed.");
-            System.exit(1);
-        }
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        String inputLine, outputLine;
-        while ((inputLine = in.readLine()) != null) {
-            //lectura y escritura entre servidores
-            System.out.println("Mensaje: " + inputLine);
-            int enteroUno = Integer.parseInt(inputLine);
-            outputLine = Integer.toString(enteroUno * enteroUno);
-            out.println(outputLine);
-
-            if (outputLine.equals("Respuestas: Bye.")) {
-                break;
+        while(true){
+            try {
+                clientSocket = serverSocket.accept();
+            } catch (IOException e) {
+                System.err.println("Accept failed.");
+                System.exit(1);
             }
-        }
-        out.close();
-        in.close();
-        clientSocket.close();
-        serverSocket.close();
+
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            String inputLine, outputLine;
+            while ((inputLine = in.readLine()) != null) {
+                //lectura y escritura entre servidores
+                System.out.println("Mensaje: " + inputLine);
+                int enteroUno = Integer.parseInt(inputLine);
+                outputLine = Integer.toString(enteroUno * enteroUno);
+                out.println(outputLine);
+    
+                if (outputLine.equals("Respuestas: Bye.")) {
+                    break;
+                }
+            }
+            out.close();
+            in.close();
+            clientSocket.close();
+            serverSocket.close();
+        }       
     }
 }
