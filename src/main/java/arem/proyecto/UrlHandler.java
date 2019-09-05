@@ -1,23 +1,28 @@
 package arem.proyecto;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.lang.reflect.Method;
 
-/**
- * Hello world!
- *
- */
-public class UrlHandler 
-{
-    URL url ;
 
-    public UrlHandler(String url){
+public class UrlHandler implements Handler{
+    private Method method;
+
+    public UrlHandler(Method method){
         try {
-            this.url= new URL(url);    
-        } catch (MalformedURLException e) {
-            //TODO: handle exception
+            this.method= method;    
+        } catch (Exception e) {
+            System.out.println("Error Aqui en UrlHandler");
         }       
 
     }
 
+    public String procesar(){
+        System.out.println("entraaaaaaaaaaaaaaaaaaaaaaa");
+        try{
+             return (String) method.invoke(null,null);
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+
+    }
 }
