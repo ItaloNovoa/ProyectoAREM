@@ -32,7 +32,7 @@ mvn install
 
 ### Despliegue en  Heroku
 
-[![Proyecto Arem](https://www.herokucdn.com/deploy/button.png)](https://mighty-caverns-71125.herokuapp.com/)
+[![Proyecto Arem](https://www.herokucdn.com/deploy/button.png)](https://secret-fjord-27017.herokuapp.com/)
 
 # Ejecutar Pruebas
 ```
@@ -40,7 +40,7 @@ mvn test
 ```
 # Casos de prueba
 ### local = http://localhost:4567/ +(complemento)
-### heroku = https://mighty-caverns-71125.herokuapp.com/ +(complemento)
+### heroku = https://secret-fjord-27017.herokuapp.com/ +(complemento)
  complemento:
  - imaginate.png
  - index.jpeg
