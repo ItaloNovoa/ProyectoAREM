@@ -95,8 +95,6 @@ public class AppServer {
                 }
                 if (inputLine.contains("/apps/")) {
                     try {
-                        System.out.println(Handler1.size());
-                        System.out.println(resource);
                         if (resource.contains("=")) {
                             int id = resource.indexOf("=");
                             out.println(Handler1.get(resource.substring(0, id))
