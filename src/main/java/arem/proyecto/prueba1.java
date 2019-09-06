@@ -1,23 +1,13 @@
 package arem.proyecto;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-
 /**
  * clase prueba utilizada para probar el modelo a travez de las funciones especificadas dentro de la clase en un browser
  */
 public class prueba1 {
-
     /**
      * metodo que muestra una respuesta inicial sin recibir ningun parametro
      * @return
      */
-    @Web("prueba1")
+    @Web("prueba")
     public static String prueba() {
         return "primera prueba";
     }
