@@ -21,6 +21,7 @@ import net.sf.image4j.codec.ico.ICOEncoder;
 import javax.imageio.ImageIO;
 
 public class AppServer {
+
     private static HashMap<String, UrlHandler> Handler = new HashMap<String, UrlHandler>();
 
     public static void appendHash(String s, Handler uh, Method m) {
@@ -78,16 +79,69 @@ public class AppServer {
                         out.println(Handler.get("prueba1").procesar());
 
                     } catch (Exception e) {
-                        error(clientSocket, out);
+                        error(clientSocket,out);
                     }
                 } else if (inputLine.contains(".html")) {
-                    html(clientSocket, out, inputLine, i);
-
+                    while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
+                        urlInputLine += (inputLine.charAt(i++));
+                    }
+                    String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + urlInputLine;
+                    System.out.println(urlDirectoryServer);
+                    try {
+                        BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
+                        out.println(encabezado);
+                        while (readerFile.ready()) {
+                            out.println(readerFile.readLine());
+                        }
+                    } catch (FileNotFoundException e) {
+                        error(clientSocket,out);
+                    }
                 } else if (inputLine.contains(".png")) {
-                    png(clientSocket, out, inputLine, i);
+                    try {
+                        while (!urlInputLine.endsWith(".png") && i < inputLine.length()) {
+                            urlInputLine += (inputLine.charAt(i++));
+                        }
+                        BufferedImage imagen = ImageIO
+                                .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(imagen, "png", baos);
+                        byte[] imageBy = baos.toByteArray();
+                        DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
+                        outImg.writeBytes("HTTP/1.1 200 OK \r\n");
+                        outImg.writeBytes("Content-Type: image/png\r\n");
+                        outImg.writeBytes("Content-Length: " + imageBy.length);
+                        outImg.writeBytes("\r\n\r\n");
+                        outImg.write(imageBy);
+                        outImg.close();
+                        out.println(outImg.toString());
+                    } catch (Exception e) {
+                        error(clientSocket,out);
+                    }                    
+
                 } else if (inputLine.contains(".jpeg")) {
-                        jpeg(clientSocket, out, inputLine, i);                
-                } else if (inputLine.contains(".ico")) {
+                    try {
+                        while (!urlInputLine.endsWith(".jpeg") && i < inputLine.length()) {
+                            urlInputLine += (inputLine.charAt(i++));
+                        }
+                        BufferedImage imagen = ImageIO
+                                .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(imagen, "jpeg", baos);
+                        byte[] imageBy = baos.toByteArray();
+                        DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
+                        outImg.writeBytes("HTTP/1.1 200 OK \r\n");
+                        outImg.writeBytes("Content-Type: image/jpeg\r\n");
+                        outImg.writeBytes("Content-Length: " + imageBy.length);
+                        outImg.writeBytes("\r\n\r\n");
+                        outImg.write(imageBy);
+                        outImg.close();
+                        out.println(outImg.toString());
+                        out.close();
+                    } catch (Exception e) {
+                        error(clientSocket,out);
+                    }                    
+                }
+                else if (inputLine.contains(".ico")){
                     try {
                         ico(clientSocket, out);
                     } catch (Exception e) {
@@ -105,72 +159,7 @@ public class AppServer {
         }
     }
 
-    public static void html(Socket clientSocket, PrintWriter out, String inputLine, int i) throws IOException {
-        try {
-            String urlInputLine = "";
-            while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
-                urlInputLine += (inputLine.charAt(i++));
-            }
-            String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + urlInputLine;
-            System.out.println(urlDirectoryServer);
-            BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
-            out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
-            while (readerFile.ready()) {
-                out.println(readerFile.readLine());
-            }
-        } catch (Exception e) {
-            error(clientSocket, out);
-        }
-    }
-
-    public static void png(Socket clientSocket, PrintWriter out, String inputLine, int i) throws IOException {
-        try {
-            String urlInputLine = "";
-            while (!urlInputLine.endsWith(".png") && i < inputLine.length()) {
-                urlInputLine += (inputLine.charAt(i++));
-            }
-            BufferedImage imagen = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(imagen, "png", baos);
-            byte[] imageBy = baos.toByteArray();
-            DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
-            outImg.writeBytes("HTTP/1.1 200 OK \r\n");
-            outImg.writeBytes("Content-Type: image/png\r\n");
-            outImg.writeBytes("Content-Length: " + imageBy.length);
-            outImg.writeBytes("\r\n\r\n");
-            outImg.write(imageBy);
-            outImg.close();
-            out.println(outImg.toString());
-        } catch (Exception e) {
-            error(clientSocket, out);
-        }
-
-    }
-
-    public static void jpeg(Socket clientSocket, PrintWriter out, String inputLine, int i) throws IOException {
-        try {
-            String urlInputLine = "";
-            while (!urlInputLine.endsWith(".jpeg") && i < inputLine.length()) {
-                urlInputLine += (inputLine.charAt(i++));
-            }
-            BufferedImage imagen = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(imagen, "jpeg", baos);
-            byte[] imageBy = baos.toByteArray();
-            DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
-            outImg.writeBytes("HTTP/1.1 200 OK \r\n");
-            outImg.writeBytes("Content-Type: image/jpeg\r\n");
-            outImg.writeBytes("Content-Length: " + imageBy.length);
-            outImg.writeBytes("\r\n\r\n");
-            outImg.write(imageBy);
-            outImg.close();
-            out.println(outImg.toString());
-            out.close();
-        } catch (Exception e) {
-            error(clientSocket, out);
-        }
-
-    }
+    
 
     public static void ico(Socket clientSocket, PrintWriter out) throws IOException {
         List<BufferedImage> images = ICODecoder.read(new File(System.getProperty("user.dir") + "images.ico"));
@@ -181,8 +170,10 @@ public class AppServer {
         ICOEncoder.write(images.get(0), baos);
     }
 
+    
+
     public static void error(Socket clientSocket, PrintWriter out) throws IOException {
-        BufferedImage github = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" + "error-2.png"));
+        BufferedImage github = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" +"error-2.png"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(github, "png", baos);
         byte[] imageBy = baos.toByteArray();
