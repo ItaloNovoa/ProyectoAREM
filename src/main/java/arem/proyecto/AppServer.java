@@ -93,7 +93,7 @@ public class AppServer {
                 } else {
                     i = inputLine.indexOf('/') + 1;
                 }
-                if (inputLine.contains("/apps")) {
+                if (inputLine.contains("/apps/")) {
                     try {
                         if (resource.contains("=")) {
                             int id = resource.indexOf("=");
