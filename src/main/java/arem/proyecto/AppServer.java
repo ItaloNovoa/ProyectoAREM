@@ -14,6 +14,9 @@ import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
+import net.sf.image4j.codec.ico.ICODecoder;
+import net.sf.image4j.codec.ico.ICOEncoder;
 
 import javax.imageio.ImageIO;
 
@@ -98,10 +101,10 @@ public class AppServer {
                         while (!urlInputLine.endsWith(".png") && i < inputLine.length()) {
                             urlInputLine += (inputLine.charAt(i++));
                         }
-                        BufferedImage github = ImageIO
+                        BufferedImage imagen = ImageIO
                                 .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(github, "png", baos);
+                        ImageIO.write(imagen, "png", baos);
                         byte[] imageBy = baos.toByteArray();
                         DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
                         outImg.writeBytes("HTTP/1.1 200 OK \r\n");
@@ -113,18 +116,17 @@ public class AppServer {
                         out.println(outImg.toString());
                     } catch (Exception e) {
                         error(clientSocket,out);
-                    }
-                    
+                    }                    
 
                 } else if (inputLine.contains(".jpeg")) {
                     try {
                         while (!urlInputLine.endsWith(".jpeg") && i < inputLine.length()) {
                             urlInputLine += (inputLine.charAt(i++));
                         }
-                        BufferedImage github = ImageIO
+                        BufferedImage imagen = ImageIO
                                 .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(github, "jpeg", baos);
+                        ImageIO.write(imagen, "jpeg", baos);
                         byte[] imageBy = baos.toByteArray();
                         DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
                         outImg.writeBytes("HTTP/1.1 200 OK \r\n");
@@ -137,8 +139,19 @@ public class AppServer {
                         out.close();
                     } catch (Exception e) {
                         error(clientSocket,out);
+                    }                    
+                }
+                else if (inputLine.contains(".ico")){
+                    try {
+                        List<BufferedImage> images = ICODecoder.read(new File(System.getProperty("user.dir") + "images.ico"));
+                        out.println("HTTP/1.1 200 OK\r");
+                        out.println("Content-Type: image/vnd.microsoft.icon\r");
+                        out.println("\r");
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ICOEncoder.write(images.get(0), baos);
+                    } catch (Exception e) {
+                        error(clientSocket, out);
                     }
-                    
                 }
                 if (!in.ready()) {
                     break;

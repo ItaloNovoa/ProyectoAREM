@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -cp target/classes:target/dependency/*arem.proyecto.Controlador
+web: java -cp target/classes:target/dependency/* arem.proyecto.Controlador
