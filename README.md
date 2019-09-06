@@ -38,9 +38,9 @@ mvn install
 ```
 mvn test
 ```
-#Casos de prueba
-local = http://localhost:4567/ +(complemento)
-heroku = https://mighty-caverns-71125.herokuapp.com/ +(complemento)
+# Casos de prueba
+### local = http://localhost:4567/ +(complemento)
+### heroku = https://mighty-caverns-71125.herokuapp.com/ +(complemento)
  complemento:
  - imaginate.png
  - index.jpeg
