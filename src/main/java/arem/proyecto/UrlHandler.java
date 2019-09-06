@@ -14,9 +14,7 @@ public class UrlHandler implements Handler{
         }       
 
     }
-
     public String procesar(){
-        System.out.println("entraaaaaaaaaaaaaaaaaaaaaaa");
         try{
              return (String) method.invoke(null,null);
         }catch(Exception e){
@@ -24,5 +22,14 @@ public class UrlHandler implements Handler{
             return null;
         }
 
+    }
+    @Override
+    public String procesar(Object[] arg) throws Exception {
+        try{
+            return (String) method.invoke(method, arg);
+        }catch(Exception e){
+            e.printStackTrace();
+            return e.toString();
+        }
     }
 }

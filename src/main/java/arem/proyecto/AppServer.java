@@ -1,3 +1,4 @@
+
 package arem.proyecto;
 
 import java.awt.image.BufferedImage;
@@ -22,13 +23,13 @@ import javax.imageio.ImageIO;
 
 public class AppServer {
 
-    private static HashMap<String, UrlHandler> Handler = new HashMap<String, UrlHandler>();
+    private static HashMap<String, UrlHandler> Handler1 = new HashMap<String, UrlHandler>();
 
-    public static void appendHash(String s, Handler uh, Method m) {
-        Handler.put("/apps/" + m.getAnnotation(Web.class).value(), new UrlHandler(m));
+    public static void appendHash(String s, Method m) {
+        Handler1.put(s, new UrlHandler(m));
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = null;
         Integer port;
         try {
@@ -45,7 +46,7 @@ public class AppServer {
         client(serverSocket);
     }
 
-    public static void client(ServerSocket serverSocket) throws IOException {
+    public static void client(ServerSocket serverSocket) throws Exception {
         Socket clientSocket = null;
         while (true) {
             try {
@@ -59,9 +60,7 @@ public class AppServer {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String inputLine;
-            String encabezado = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n";
             while ((inputLine = in.readLine()) != null) {
-                // lectura y escritura entre servidores
                 System.out.println("Received: " + inputLine);
                 int index = inputLine.indexOf("/apps/");
                 String resource = "", urlInputLine = "";
@@ -73,15 +72,24 @@ public class AppServer {
                 } else {
                     i = inputLine.indexOf('/') + 1;
                 }
-                if (inputLine.contains("/apps/")) {
+                if (inputLine.contains("/apps/")) { 
                     try {
-                        out.println(encabezado);
-                        out.println(Handler.get("prueba1").procesar());
-
+                        System.out.println(Handler1.size());
+                        System.out.println(resource);                   
+                        if(resource.contains("=")) {
+                            int id = resource.indexOf("=");
+                            out.println(Handler1.get(resource.substring(0, id)).procesar(new Object[]{resource.substring(id+1)}));
+                        }else {
+                            out.println(Handler1.get(resource).procesar());
+                        }
                     } catch (Exception e) {
-                        error(clientSocket,out);
+                        error(clientSocket, out);
                     }
-                } else if (inputLine.contains(".html")) {
+                   
+                }else if(inputLine.contains("/ ")){
+                    error(clientSocket, out);
+                } 
+                else if (inputLine.contains(".html")) {
                     while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
                         urlInputLine += (inputLine.charAt(i++));
                     }
@@ -89,7 +97,7 @@ public class AppServer {
                     System.out.println(urlDirectoryServer);
                     try {
                         BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
-                        out.println(encabezado);
+                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
                         while (readerFile.ready()) {
                             out.println(readerFile.readLine());
                         }
@@ -151,7 +159,6 @@ public class AppServer {
                 if (!in.ready()) {
                     break;
                 }
-
             }
             out.close();
             in.close();
@@ -186,4 +193,6 @@ public class AppServer {
         outImg.close();
         out.println(outImg.toString());
     }
+
+    
 }
