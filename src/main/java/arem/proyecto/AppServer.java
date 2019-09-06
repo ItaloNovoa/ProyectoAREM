@@ -25,10 +25,23 @@ public class AppServer {
 
     private static HashMap<String, UrlHandler> Handler1 = new HashMap<String, UrlHandler>();
 
+    /**
+     * metodo utilizado para guardar los metodos de las clases pruebas en un hash
+     * map
+     * 
+     * @param s
+     * @param m
+     */
     public static void appendHash(String s, Method m) {
         Handler1.put(s, new UrlHandler(m));
     }
 
+    /**
+     * clase principal de la clase appServer genera y asigna el socket del servidor
+     * 
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = null;
         Integer port;
@@ -46,6 +59,14 @@ public class AppServer {
         client(serverSocket);
     }
 
+    /**
+     * Esta es la clase principal se encarga de crear el servidor del cliente
+     * conectalo con el del server, recibir los mensajes del server desplegado por
+     * medio de un browser y hacer el control a dichos mensajees
+     * 
+     * @param serverSocket
+     * @throws Exception
+     */
     public static void client(ServerSocket serverSocket) throws Exception {
         Socket clientSocket = null;
         while (true) {
@@ -72,24 +93,24 @@ public class AppServer {
                 } else {
                     i = inputLine.indexOf('/') + 1;
                 }
-                if (inputLine.contains("/apps/")) { 
+                if (inputLine.contains("/apps/")) {
                     try {
                         System.out.println(Handler1.size());
-                        System.out.println(resource);                   
-                        if(resource.contains("=")) {
+                        System.out.println(resource);
+                        if (resource.contains("=")) {
                             int id = resource.indexOf("=");
-                            out.println(Handler1.get(resource.substring(0, id)).procesar(new Object[]{resource.substring(id+1)}));
-                        }else {
+                            out.println(Handler1.get(resource.substring(0, id))
+                                    .procesar(new Object[] { resource.substring(id + 1) }));
+                        } else {
                             out.println(Handler1.get(resource).procesar());
                         }
                     } catch (Exception e) {
                         error(clientSocket, out);
                     }
-                   
-                }else if(inputLine.contains("/ ")){
+
+                } else if (inputLine.contains("/ ")) {
                     error(clientSocket, out);
-                } 
-                else if (inputLine.contains(".html")) {
+                } else if (inputLine.contains(".html")) {
                     while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
                         urlInputLine += (inputLine.charAt(i++));
                     }
@@ -102,7 +123,7 @@ public class AppServer {
                             out.println(readerFile.readLine());
                         }
                     } catch (FileNotFoundException e) {
-                        error(clientSocket,out);
+                        error(clientSocket, out);
                     }
                 } else if (inputLine.contains(".png")) {
                     try {
@@ -123,8 +144,8 @@ public class AppServer {
                         outImg.close();
                         out.println(outImg.toString());
                     } catch (Exception e) {
-                        error(clientSocket,out);
-                    }                    
+                        error(clientSocket, out);
+                    }
 
                 } else if (inputLine.contains(".jpeg")) {
                     try {
@@ -146,10 +167,9 @@ public class AppServer {
                         out.println(outImg.toString());
                         out.close();
                     } catch (Exception e) {
-                        error(clientSocket,out);
-                    }                    
-                }
-                else if (inputLine.contains(".ico")){
+                        error(clientSocket, out);
+                    }
+                } else if (inputLine.contains(".ico")) {
                     try {
                         ico(clientSocket, out);
                     } catch (Exception e) {
@@ -166,8 +186,14 @@ public class AppServer {
         }
     }
 
-    
-
+    /**
+     * esta clase se encarga de controlar el error del get hecho por heroku de un
+     * favIcon.ico
+     * 
+     * @param clientSocket
+     * @param out
+     * @throws IOException
+     */
     public static void ico(Socket clientSocket, PrintWriter out) throws IOException {
         List<BufferedImage> images = ICODecoder.read(new File(System.getProperty("user.dir") + "images.ico"));
         out.println("HTTP/1.1 200 OK\r");
@@ -177,22 +203,33 @@ public class AppServer {
         ICOEncoder.write(images.get(0), baos);
     }
 
-    
-
+    /**
+     * Este parametro se encarga de lanzar errores para algunas excpciones con una
+     * imagen predeterminada
+     * 
+     * @param clientSocket
+     * @param out
+     * @throws IOException
+     */
     public static void error(Socket clientSocket, PrintWriter out) throws IOException {
-        BufferedImage github = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" +"error-2.png"));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(github, "png", baos);
-        byte[] imageBy = baos.toByteArray();
-        DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
-        outImg.writeBytes("HTTP/1.1 200 OK \r\n");
-        outImg.writeBytes("Content-Type: image/png\r\n");
-        outImg.writeBytes("Content-Length: " + imageBy.length);
-        outImg.writeBytes("\r\n\r\n");
-        outImg.write(imageBy);
-        outImg.close();
-        out.println(outImg.toString());
+        try {
+            BufferedImage imagen = ImageIO.read(new File(System.getProperty("user.dir") + "/ejemplo/" + "error-2.png"));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(imagen, "png", baos);
+            byte[] imageBy = baos.toByteArray();
+            DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
+            outImg.writeBytes("HTTP/1.1 200 OK \r\n");
+            outImg.writeBytes("Content-Type: image/png\r\n");
+            outImg.writeBytes("Content-Length: " + imageBy.length);
+            outImg.writeBytes("\r\n\r\n");
+            outImg.write(imageBy);
+            outImg.close();
+            out.println(outImg.toString());
+        } catch (Exception e) {
+            System.err.println("no pudimos manejar el error");
+        }
+        
+
     }
 
-    
 }

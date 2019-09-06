@@ -5,7 +5,11 @@ import java.lang.reflect.Method;
 
 public class Controlador {
 
-
+    /**
+     * clase principal de todo el modelo encargado de leer en la Clase Prueba1 los metodos y de iniciar el appServer
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         try {
             String p = "arem.proyecto.";
