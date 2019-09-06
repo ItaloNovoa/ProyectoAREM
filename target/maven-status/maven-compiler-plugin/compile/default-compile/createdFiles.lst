@@ -1,4 +1,6 @@
-arem\proyecto\Handler.class
-arem\proyecto\prueba1.class
-arem\proyecto\Web.class
-arem\proyecto\UrlHandler.class
+arem/proyecto/prueba1.class
+arem/proyecto/UrlHandler.class
+arem/proyecto/Handler.class
+arem/proyecto/Controlador.class
+arem/proyecto/AppServer.class
+arem/proyecto/Web.class
