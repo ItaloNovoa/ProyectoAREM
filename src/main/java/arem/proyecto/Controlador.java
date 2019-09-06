@@ -14,7 +14,7 @@ public class Controlador {
                 Class c = Class.forName(p + "prueba1");
 
                 for (Method m : c.getMethods()) {
-
+                    System.out.println("------------------------------"+m);
                     if (m.isAnnotationPresent(Web.class)) {
                         Handler h = new UrlHandler(m);
                         AppServer.appendHash("/apps/" + m.getAnnotation(Web.class).value(), h,m);
