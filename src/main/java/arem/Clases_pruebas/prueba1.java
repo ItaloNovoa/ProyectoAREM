@@ -1,4 +1,6 @@
-package arem.proyecto;
+package arem.Clases_pruebas;
+
+import arem.proyecto.*;
 /**
  * clase prueba utilizada para probar el modelo a travez de las funciones especificadas dentro de la clase en un browser
  */
@@ -17,7 +19,7 @@ public class prueba1 {
      * @param name
      * @return
      */
-    @Web("Nombre")
+    @Web("Nombre?n1")
     public static String Saludo(String name) {
         return "hola -->"+name;
     }
@@ -27,9 +29,10 @@ public class prueba1 {
      * @param n1
      * @return
      */
-    @Web("Cuadrado")
+    @Web("Cuadrado?n1")
     public static String Cuadrado(String n1) {
         int a=Integer.parseInt(n1);
         return "el cuadrado de "+n1+" es "+Integer.toString(a*a);
     }
+    
 }

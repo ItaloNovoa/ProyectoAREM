@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - Controlador",
+            "request": "launch",
+            "mainClass": "arem.proyecto.Controlador",
+            "projectName": "proyecto"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - asd",
+            "request": "launch",
+            "mainClass": "arem.asd",
+            "projectName": "proyecto"
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch) - Current File",
             "request": "launch",
             "mainClass": "${file}"

@@ -108,7 +108,17 @@ public class AppServer {
                     }
 
                 } else if (inputLine.contains("/ ")) {
-                    error(clientSocket, out);
+                    String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + "index.html";
+                    System.out.println(urlDirectoryServer);
+                    try {
+                        BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
+                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
+                        while (readerFile.ready()) {
+                            out.println(readerFile.readLine());
+                        }
+                    } catch (FileNotFoundException e) {
+                        error(clientSocket, out);
+                    }
                 } else if (inputLine.contains(".html")) {
                     while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
                         urlInputLine += (inputLine.charAt(i++));
