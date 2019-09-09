@@ -95,6 +95,7 @@ public class AppServer {
                 }
                 if (inputLine.contains("/apps/")) {
                     try {
+                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
                         if (resource.contains("=")) {
                             int id = resource.indexOf("=");
                             out.println(Handler1.get(resource.substring(0, id))
