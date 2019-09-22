@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +20,9 @@ import net.sf.image4j.codec.ico.ICOEncoder;
 
 import javax.imageio.ImageIO;
 
-public class AppServer {
+public class AppServer implements Runnable {
 
+    Socket clientSocket = null;
     private static HashMap<String, UrlHandler> Handler1 = new HashMap<String, UrlHandler>();
 
     /**
@@ -36,27 +36,9 @@ public class AppServer {
         Handler1.put(s, new UrlHandler(m));
     }
 
-    /**
-     * clase principal de la clase appServer genera y asigna el socket del servidor
-     * 
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-        ServerSocket serverSocket = null;
-        Integer port;
-        try {
-            if (System.getenv("PORT") != null) {
-                port = Integer.parseInt(System.getenv("PORT"));
-            } else {
-                port = 4567;
-            }
-            serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            System.err.println("Could not listen on port: 4567");
-            System.exit(1);
-        }
-        client(serverSocket);
+    public AppServer(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+
     }
 
     /**
@@ -67,131 +49,132 @@ public class AppServer {
      * @param serverSocket
      * @throws Exception
      */
-    public static void client(ServerSocket serverSocket) throws Exception {
-        Socket clientSocket = null;
+    public static void client(Socket clientSocket) throws Exception {
+
         while (true) {
             try {
-                System.out.println();
-                clientSocket = serverSocket.accept();
-            } catch (IOException e) {
-                System.err.println("Accept failed.");
-                System.exit(1);
-            }
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    System.out.println("Received: " + inputLine);
+                    int index = inputLine.indexOf("/apps/");
+                    String resource = "", urlInputLine = "";
+                    int i = -1;
+                    if (index != -1) {
+                        for (i = index; i < inputLine.length() && inputLine.charAt(i) != ' '; i++) {
+                            resource += inputLine.charAt(i);
+                        }
+                    } else {
+                        i = inputLine.indexOf('/') + 1;
+                    }
+                    if (inputLine.contains("/apps/")) {
+                        try {
+                            out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
+                            if (resource.contains("=")) {
+                                int id = resource.indexOf("=");
+                                out.println(Handler1.get(resource.substring(0, id))
+                                        .procesar(new Object[] { resource.substring(id + 1) }));
+                            } else {
+                                out.println(Handler1.get(resource).procesar());
+                            }
+                        } catch (Exception e) {
+                            error(clientSocket, out);
+                        }
 
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                System.out.println("Received: " + inputLine);
-                int index = inputLine.indexOf("/apps/");
-                String resource = "", urlInputLine = "";
-                int i = -1;
-                if (index != -1) {
-                    for (i = index; i < inputLine.length() && inputLine.charAt(i) != ' '; i++) {
-                        resource += inputLine.charAt(i);
-                    }
-                } else {
-                    i = inputLine.indexOf('/') + 1;
-                }
-                if (inputLine.contains("/apps/")) {
-                    try {
-                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
-                        if (resource.contains("=")) {
-                            int id = resource.indexOf("=");
-                            out.println(Handler1.get(resource.substring(0, id))
-                                    .procesar(new Object[] { resource.substring(id + 1) }));
-                        } else {
-                            out.println(Handler1.get(resource).procesar());
+                    } else if (inputLine.contains("/ ")) {
+                        String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + "index.html";
+                        System.out.println(urlDirectoryServer);
+                        try {
+                            BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
+                            out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
+                            while (readerFile.ready()) {
+                                out.println(readerFile.readLine());
+                            }
+                            readerFile.close();
+                        } catch (FileNotFoundException e) {
+                            error(clientSocket, out);
                         }
-                    } catch (Exception e) {
-                        error(clientSocket, out);
-                    }
-
-                } else if (inputLine.contains("/ ")) {
-                    String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + "index.html";
-                    System.out.println(urlDirectoryServer);
-                    try {
-                        BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
-                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
-                        while (readerFile.ready()) {
-                            out.println(readerFile.readLine());
-                        }
-                    } catch (FileNotFoundException e) {
-                        error(clientSocket, out);
-                    }
-                } else if (inputLine.contains(".html")) {
-                    while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
-                        urlInputLine += (inputLine.charAt(i++));
-                    }
-                    String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + urlInputLine;
-                    System.out.println(urlDirectoryServer);
-                    try {
-                        BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
-                        out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
-                        while (readerFile.ready()) {
-                            out.println(readerFile.readLine());
-                        }
-                    } catch (FileNotFoundException e) {
-                        error(clientSocket, out);
-                    }
-                } else if (inputLine.contains(".png")) {
-                    try {
-                        while (!urlInputLine.endsWith(".png") && i < inputLine.length()) {
+                    } else if (inputLine.contains(".html")) {
+                        while (!urlInputLine.endsWith(".html") && i < inputLine.length()) {
                             urlInputLine += (inputLine.charAt(i++));
                         }
-                        BufferedImage imagen = ImageIO
-                                .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(imagen, "png", baos);
-                        byte[] imageBy = baos.toByteArray();
-                        DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
-                        outImg.writeBytes("HTTP/1.1 200 OK \r\n");
-                        outImg.writeBytes("Content-Type: image/png\r\n");
-                        outImg.writeBytes("Content-Length: " + imageBy.length);
-                        outImg.writeBytes("\r\n\r\n");
-                        outImg.write(imageBy);
-                        outImg.close();
-                        out.println(outImg.toString());
-                    } catch (Exception e) {
-                        error(clientSocket, out);
-                    }
-
-                } else if (inputLine.contains(".jpeg")) {
-                    try {
-                        while (!urlInputLine.endsWith(".jpeg") && i < inputLine.length()) {
-                            urlInputLine += (inputLine.charAt(i++));
+                        String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + urlInputLine;
+                        System.out.println(urlDirectoryServer);
+                        try {
+                            BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
+                            out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
+                            while (readerFile.ready()) {
+                                out.println(readerFile.readLine());
+                            }
+                            readerFile.close();
+                        } catch (FileNotFoundException e) {
+                            error(clientSocket, out);
                         }
-                        BufferedImage imagen = ImageIO
-                                .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(imagen, "jpeg", baos);
-                        byte[] imageBy = baos.toByteArray();
-                        DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
-                        outImg.writeBytes("HTTP/1.1 200 OK \r\n");
-                        outImg.writeBytes("Content-Type: image/jpeg\r\n");
-                        outImg.writeBytes("Content-Length: " + imageBy.length);
-                        outImg.writeBytes("\r\n\r\n");
-                        outImg.write(imageBy);
-                        outImg.close();
-                        out.println(outImg.toString());
-                        out.close();
-                    } catch (Exception e) {
-                        error(clientSocket, out);
+                    } else if (inputLine.contains(".png")) {
+                        try {
+                            while (!urlInputLine.endsWith(".png") && i < inputLine.length()) {
+                                urlInputLine += (inputLine.charAt(i++));
+                            }
+                            BufferedImage imagen = ImageIO
+                                    .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(imagen, "png", baos);
+                            byte[] imageBy = baos.toByteArray();
+                            DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
+                            outImg.writeBytes("HTTP/1.1 200 OK \r\n");
+                            outImg.writeBytes("Content-Type: image/png\r\n");
+                            outImg.writeBytes("Content-Length: " + imageBy.length);
+                            outImg.writeBytes("\r\n\r\n");
+                            outImg.write(imageBy);
+                            outImg.close();
+                            out.println(outImg.toString());
+                        } catch (Exception e) {
+                            error(clientSocket, out);
+                        }
+
+                    } else if (inputLine.contains(".jpeg")) {
+                        try {
+                            while (!urlInputLine.endsWith(".jpeg") && i < inputLine.length()) {
+                                urlInputLine += (inputLine.charAt(i++));
+                            }
+                            BufferedImage imagen = ImageIO
+                                    .read(new File(System.getProperty("user.dir") + "/ejemplo/" + urlInputLine));
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(imagen, "jpeg", baos);
+                            byte[] imageBy = baos.toByteArray();
+                            DataOutputStream outImg = new DataOutputStream(clientSocket.getOutputStream());
+                            outImg.writeBytes("HTTP/1.1 200 OK \r\n");
+                            outImg.writeBytes("Content-Type: image/jpeg\r\n");
+                            outImg.writeBytes("Content-Length: " + imageBy.length);
+                            outImg.writeBytes("\r\n\r\n");
+                            outImg.write(imageBy);
+                            outImg.close();
+                            out.println(outImg.toString());
+                            out.close();
+                        } catch (Exception e) {
+                            error(clientSocket, out);
+                        }
+                    } else if (inputLine.contains(".ico")) {
+                        try {
+                            ico(clientSocket, out);
+                        } catch (Exception e) {
+                            error(clientSocket, out);
+                        }
                     }
-                } else if (inputLine.contains(".ico")) {
-                    try {
-                        ico(clientSocket, out);
-                    } catch (Exception e) {
-                        error(clientSocket, out);
+                    if (!in.ready()) {
+                        break;
                     }
-                }
-                if (!in.ready()) {
+                    out.close();
+                    in.close();
+
+                    clientSocket.close();
                     break;
                 }
+            } catch (Exception e) {
+                clientSocket.close();
+                break;
             }
-            out.close();
-            in.close();
-            clientSocket.close();
         }
     }
 
@@ -239,4 +222,13 @@ public class AppServer {
         }
     }
 
+    @Override
+    public void run() {
+        System.out.println("Soy el hilo______________________ooo" + Thread.currentThread().getId());
+        try {
+            client(clientSocket);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

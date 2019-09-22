@@ -40,6 +40,6 @@ public class Controlador {
             e.printStackTrace();
 
         }
-        AppServer.main(args);      
+        balanceador.main(args);      
     }
 }
