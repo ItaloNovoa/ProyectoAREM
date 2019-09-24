@@ -6,10 +6,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 public class balanceador {
 
-    private static ExecutorService pool = Executors.newFixedThreadPool(10);
+    private static ExecutorService pool = Executors.newFixedThreadPool(100);
 
-    public static void main(String[] args) throws Exception {        
-
+    public static void main(String[] args) throws Exception { 
         ServerSocket serverSocket = null;
         Integer port;
         try {
@@ -27,11 +26,11 @@ public class balanceador {
         while (true) {
             Socket clientSocket = null;
             try {
-                System.out.println();
                 clientSocket = serverSocket.accept();
-                AppServer sh = new AppServer(clientSocket);
+                AppServer sh = new AppServer(clientSocket,serverSocket);
                 pool.submit(sh);
             } catch (IOException e) {
+                e.printStackTrace();
                 System.err.println("Accept failed.");
                 System.exit(1);
             }

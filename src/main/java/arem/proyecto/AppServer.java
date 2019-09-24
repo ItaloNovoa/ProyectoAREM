@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import javax.imageio.ImageIO;
 public class AppServer implements Runnable {
 
     Socket clientSocket = null;
+    private  ServerSocket serverSocket = null;
     private static HashMap<String, UrlHandler> Handler1 = new HashMap<String, UrlHandler>();
 
     /**
@@ -36,9 +38,9 @@ public class AppServer implements Runnable {
         Handler1.put(s, new UrlHandler(m));
     }
 
-    public AppServer(Socket clientSocket) {
+    public AppServer(Socket clientSocket,ServerSocket serverSocket) {
         this.clientSocket = clientSocket;
-
+        this.serverSocket = serverSocket;
     }
 
     /**
@@ -49,15 +51,18 @@ public class AppServer implements Runnable {
      * @param serverSocket
      * @throws Exception
      */
-    public static void client(Socket clientSocket) throws Exception {
+    public static void client(Socket clientSocket,ServerSocket serverSocket) throws Exception {
 
         while (true) {
             try {
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                if(clientSocket == null || clientSocket.isClosed()){
+                    clientSocket = serverSocket.accept();
+                }
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);                       
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
-                    System.out.println("Received: " + inputLine);
+                    //System.out.println("Received: " + inputLine);
                     int index = inputLine.indexOf("/apps/");
                     String resource = "", urlInputLine = "";
                     int i = -1;
@@ -84,7 +89,7 @@ public class AppServer implements Runnable {
 
                     } else if (inputLine.contains("/ ")) {
                         String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + "index.html";
-                        System.out.println(urlDirectoryServer);
+                        //System.out.println(urlDirectoryServer);
                         try {
                             BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
                             out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
@@ -100,7 +105,7 @@ public class AppServer implements Runnable {
                             urlInputLine += (inputLine.charAt(i++));
                         }
                         String urlDirectoryServer = System.getProperty("user.dir") + "/ejemplo/" + urlInputLine;
-                        System.out.println(urlDirectoryServer);
+                        //System.out.println(urlDirectoryServer);
                         try {
                             BufferedReader readerFile = new BufferedReader(new FileReader(urlDirectoryServer));
                             out.println("HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "\r\n");
@@ -163,19 +168,20 @@ public class AppServer implements Runnable {
                         }
                     }
                     if (!in.ready()) {
-                        break;
+                        clientSocket.close(); 
+                        break;                        
                     }
                     out.close();
                     in.close();
-
-                    clientSocket.close();
-                    break;
+                    clientSocket.close();                                        
+                    
                 }
             } catch (Exception e) {
+                //e.printStackTrace();
                 clientSocket.close();
                 break;
-            }
-        }
+            }            
+        }        
     }
 
     /**
@@ -218,15 +224,15 @@ public class AppServer implements Runnable {
             outImg.close();
             out.println(outImg.toString());
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("no pudimos manejar el error");
         }
     }
 
     @Override
     public void run() {
-        System.out.println("Soy el hilo______________________ooo" + Thread.currentThread().getId());
         try {
-            client(clientSocket);
+            client(clientSocket,serverSocket);
         } catch (Exception e) {
             e.printStackTrace();
         }

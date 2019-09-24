@@ -34,12 +34,12 @@ public class Controlador {
                         }
                     }
                 }                    
-            }            
-        } catch (Exception e) {                
-            System.out.println("Error");
+            }  
+                      
+        } catch (Exception e) {
             e.printStackTrace();
 
         }
-        balanceador.main(args);      
+        balanceador.main(args);            
     }
 }
